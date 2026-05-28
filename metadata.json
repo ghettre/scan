@@ -1,0 +1,10 @@
+{
+  "name": "smart scan",
+  "description": "تطبيق smart scan لمسح الفواتير واستخراج البيانات بذكاء وتخصيص حقول التصدير.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">smart scan</string>
+    <string name="title_activity_main">smart scan</string>
+    <string name="package_name">com.yass.invoicescanner</string>
+    <string name="custom_url_scheme">com.yass.invoicescanner</string>
+</resources>
