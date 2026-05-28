@@ -266,20 +266,28 @@ export default function Dashboard({
         <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`} />
       </button>
 
-      <footer className="pb-28 pt-2 flex items-center justify-center gap-4 text-xs font-bold text-slate-400">
-        <button
-          onClick={() => onOpenLegal("privacy")}
+      <footer className="fixed md:static bottom-[5.5rem] left-4 right-4 z-30 md:z-auto md:pb-28 md:pt-2 flex items-center justify-center gap-4 text-xs font-bold text-slate-500 md:text-slate-400 bg-white/90 md:bg-transparent backdrop-blur-xl md:backdrop-blur-0 border border-slate-100 md:border-0 rounded-full md:rounded-none py-3 md:py-0 shadow-[0_10px_30px_rgba(15,23,42,0.08)] md:shadow-none">
+        <a
+          href="/privacy-policy"
+          onClick={(event) => {
+            event.preventDefault();
+            onOpenLegal("privacy");
+          }}
           className="hover:text-blue-600 transition-colors cursor-pointer"
         >
           سياسة الخصوصية
-        </button>
+        </a>
         <span className="w-1 h-1 rounded-full bg-slate-300" />
-        <button
-          onClick={() => onOpenLegal("terms")}
+        <a
+          href="/terms-of-use"
+          onClick={(event) => {
+            event.preventDefault();
+            onOpenLegal("terms");
+          }}
           className="hover:text-blue-600 transition-colors cursor-pointer"
         >
           شروط الاستخدام
-        </button>
+        </a>
       </footer>
 
     </div>

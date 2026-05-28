@@ -30,6 +30,20 @@ interface SyncLogItem {
   success: boolean;
 }
 
+type LegalPageName = "privacy" | "terms";
+
+const legalPaths: Record<LegalPageName, string> = {
+  privacy: "/privacy-policy",
+  terms: "/terms-of-use"
+};
+
+const getLegalPageFromPath = (): LegalPageName | null => {
+  if (typeof window === "undefined") return null;
+  if (window.location.pathname === legalPaths.privacy) return "privacy";
+  if (window.location.pathname === legalPaths.terms) return "terms";
+  return null;
+};
+
 async function readJsonResponse(response: Response) {
   const text = await response.text();
   if (!text.trim()) return {};
@@ -72,7 +86,20 @@ const sortInvoicesDesc = (list: Invoice[]): Invoice[] => {
 };
 
 export default function App() {
-  const [legalPage, setLegalPage] = useState<"privacy" | "terms" | null>(null);
+  const [legalPage, setLegalPage] = useState<LegalPageName | null>(() => getLegalPageFromPath());
+
+  const openLegalPage = (page: LegalPageName) => {
+    setLegalPage(page);
+    window.history.pushState({ legalPage: page }, "", legalPaths[page]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const closeLegalPage = () => {
+    setLegalPage(null);
+    if (getLegalPageFromPath()) {
+      window.history.pushState({}, "", "/");
+    }
+  };
 
   // Authentication states
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -284,6 +311,15 @@ export default function App() {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setLegalPage(getLegalPageFromPath());
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   // Register deep-link listener for OAuth callback (com.yass.invoicescanner://auth-callback)
   useEffect(() => {
@@ -1410,7 +1446,7 @@ export default function App() {
   // Show InitialSetup for new users who have no existing data
   // This page helps new users set up their first Google Sheet connection
   if (legalPage) {
-    return <LegalPage page={legalPage} onBack={() => setLegalPage(null)} />;
+    return <LegalPage page={legalPage} onBack={closeLegalPage} />;
   }
 
   if (isLoggedIn && isNewUser && !spreadsheetId && connectedSheets.length === 0) {
@@ -1443,7 +1479,7 @@ export default function App() {
   }
 
   if (!isLoggedIn) {
-    return <Login onLoginSuccess={handleLoginSuccess} onOpenLegal={setLegalPage} />;
+    return <Login onLoginSuccess={handleLoginSuccess} onOpenLegal={openLegalPage} />;
   }
 
   return (
@@ -1543,7 +1579,7 @@ export default function App() {
                 onNavigateToHistory={() => setActiveTab("history")}
                 onNavigateToAnalytics={() => setActiveTab("analytics")}
                 onScanDirectImage={handleScanDirectImage}
-                onOpenLegal={setLegalPage}
+                onOpenLegal={openLegalPage}
               />
             )}
             {activeTab === "analytics" && (

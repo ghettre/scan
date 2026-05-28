@@ -82,19 +82,27 @@ export default function Login({ onOpenLegal }: LoginProps) {
         </button>
 
         <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-4 text-xs font-bold text-slate-400">
-          <button
-            onClick={() => onOpenLegal("privacy")}
+          <a
+            href="/privacy-policy"
+            onClick={(event) => {
+              event.preventDefault();
+              onOpenLegal("privacy");
+            }}
             className="hover:text-[#0052ff] transition-colors cursor-pointer"
           >
             سياسة الخصوصية
-          </button>
+          </a>
           <span className="w-1 h-1 rounded-full bg-slate-300" />
-          <button
-            onClick={() => onOpenLegal("terms")}
+          <a
+            href="/terms-of-use"
+            onClick={(event) => {
+              event.preventDefault();
+              onOpenLegal("terms");
+            }}
             className="hover:text-[#0052ff] transition-colors cursor-pointer"
           >
             شروط الاستخدام
-          </button>
+          </a>
         </div>
       </main>
     </div>
