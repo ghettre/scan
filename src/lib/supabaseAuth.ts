@@ -6,6 +6,7 @@ import { ConnectedSheet, Invoice, Template } from "../types";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 const nativeRedirectUrl = "com.yass.invoicescanner://auth-callback";
 const googleScopes = [
   "https://www.googleapis.com/auth/spreadsheets",
@@ -13,20 +14,26 @@ const googleScopes = [
   "https://www.googleapis.com/auth/drive.metadata.readonly"
 ].join(" ");
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase credentials in .env");
-}
+const requireSupabaseCredentials = () => {
+  if (!isSupabaseConfigured) {
+    throw new Error("Missing Supabase credentials in .env");
+  }
+};
 
 const isNative = Capacitor.isNativePlatform();
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(
+  supabaseUrl || "https://placeholder.supabase.co",
+  supabaseAnonKey || "placeholder-anon-key",
+  {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: false,
     flowType: "pkce"
   }
-});
+  }
+);
 
 /* =========================================================
    ACCESS TOKEN CACHE
@@ -81,6 +88,8 @@ const persistGoogleIntegration = async (session: any) => {
 };
 
 export const getValidGoogleAccessToken = async () => {
+  requireSupabaseCredentials();
+
   const {
     data: { session },
     error,
@@ -100,6 +109,8 @@ export const getValidGoogleAccessToken = async () => {
 };
 
 export const signOutForExpiredSession = async () => {
+  requireSupabaseCredentials();
+
   await supabase.auth.signOut();
   cachedAccessToken = null;
   localStorage.removeItem("billflow_google_provider_token");
@@ -127,6 +138,12 @@ export const initAuth = (
   onAuthSuccess?: (user: any, token: string) => void,
   onAuthFailure?: () => void
 ) => {
+  if (!isSupabaseConfigured) {
+    console.error("Missing Supabase credentials in .env");
+    onAuthFailure?.();
+    return () => undefined;
+  }
+
   const handleSession = async () => {
     const {
       data: { session },
@@ -185,6 +202,8 @@ export const initAuth = (
 export const signInWithGoogleOAuth = async (params?: {
   scopes?: string;
 }) => {
+  requireSupabaseCredentials();
+
   const redirectTo = isNative ? nativeRedirectUrl : `${window.location.origin}/auth-callback`;
 
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -218,6 +237,8 @@ export const googleSignIn = signInWithGoogleOAuth;
    DEEP LINK HANDLER (FIXED)
 ========================================================= */
 export const completeOAuthRedirect = async (url: string) => {
+  requireSupabaseCredentials();
+
   if (!url.startsWith(nativeRedirectUrl) && !url.startsWith(`${window.location.origin}/auth-callback`)) {
     return null;
   }
@@ -296,6 +317,8 @@ export const handleDeepLinkCallback = () => {
 export const getAccessToken = () => cachedAccessToken;
 
 export const logoutGoogle = async () => {
+  requireSupabaseCredentials();
+
   await supabase.auth.signOut();
   cachedAccessToken = null;
   localStorage.removeItem("billflow_google_provider_token");
@@ -303,6 +326,8 @@ export const logoutGoogle = async () => {
 };
 
 export const saveInvoiceToSupabase = async (invoice: Invoice) => {
+  requireSupabaseCredentials();
+
   const {
     data: { user },
     error: userError,
@@ -349,6 +374,8 @@ export const saveInvoiceToSupabase = async (invoice: Invoice) => {
 };
 
 export const getInvoicesFromSupabase = async (): Promise<Invoice[]> => {
+  requireSupabaseCredentials();
+
   const {
     data: { user },
     error: userError,
@@ -379,6 +406,8 @@ export const getInvoicesFromSupabase = async (): Promise<Invoice[]> => {
 };
 
 export const getTemplates = async (userId: string): Promise<Template[]> => {
+  requireSupabaseCredentials();
+
   const { data, error } = await supabase
     .from("templates")
     .select("*")
@@ -397,6 +426,8 @@ export const getTemplates = async (userId: string): Promise<Template[]> => {
 };
 
 export const upsertTemplate = async (userId: string, template: Template) => {
+  requireSupabaseCredentials();
+
   const { data, error } = await supabase
     .from("templates")
     .upsert(
@@ -418,6 +449,8 @@ export const upsertTemplate = async (userId: string, template: Template) => {
 };
 
 export const getSheetConfigs = async (userId: string): Promise<ConnectedSheet[]> => {
+  requireSupabaseCredentials();
+
   const { data, error } = await supabase
     .from("sheet_configs")
     .select("*")
@@ -441,6 +474,8 @@ export const getSheetConfigs = async (userId: string): Promise<ConnectedSheet[]>
 };
 
 export const upsertSheetConfig = async (userId: string, sheet: ConnectedSheet) => {
+  requireSupabaseCredentials();
+
   const { data, error } = await supabase
     .from("sheet_configs")
     .upsert(
@@ -467,6 +502,8 @@ export const upsertSheetConfig = async (userId: string, sheet: ConnectedSheet) =
 };
 
 export const deleteSheetConfig = async (userId: string, sheetConfigId: string) => {
+  requireSupabaseCredentials();
+
   const { error } = await supabase
     .from("sheet_configs")
     .delete()
@@ -480,6 +517,8 @@ export const deleteSheetConfig = async (userId: string, sheetConfigId: string) =
    EMAIL AUTH
 ========================================================= */
 export const signInWithEmail = async (email: string, password: string) => {
+  requireSupabaseCredentials();
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -494,6 +533,8 @@ export const signUpWithEmail = async (
   password: string,
   fullName: string
 ) => {
+  requireSupabaseCredentials();
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -507,6 +548,8 @@ export const signUpWithEmail = async (
 };
 
 export const resetPasswordForEmail = async (email: string) => {
+  requireSupabaseCredentials();
+
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin,
   });
